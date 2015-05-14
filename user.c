@@ -3,7 +3,7 @@
 #include <sys/shm.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
+#include <string.h>
 
 
 #define SHMSZ 1024
@@ -41,8 +41,9 @@ int main()
     /*
      * Now read what the server put in the memory.
      */
-    for (s = shm; *s != NULL; s++)
-        putchar(*s);
+     printf("SERV %s",shm);
+   /* for (s = shm; *s != NULL; s++)
+        putchar(*s);*/
     putchar('\n');
 
     /*
@@ -50,7 +51,7 @@ int main()
      * segment to '*', indicating we have read
      * the segment.
      */
-    *shm = '*';
+   // *shm = '*';
 
     return 0;
 }

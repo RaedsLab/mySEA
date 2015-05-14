@@ -212,7 +212,7 @@ int main()
             sprintf(tmpPort, "%d", ntohs(si_other.sin_port));
             strcat(buf, "#");
             strcat(buf, tmpPort);
-            shm = buf;
+            s = buf;
             printf("FINAL %s \n",buf);
             /// End add port to data ///
 
