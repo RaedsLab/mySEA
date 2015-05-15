@@ -126,18 +126,25 @@ int main()
     struct sockaddr_in si_other;
     int s, i, slen=sizeof(si_other);
     char buf[BUFLEN];
+    /// END OF SOCKET ONE ///
 
 
     /// VARS FOR SHARED MEMORY ///
     int shmid;
     key_t key;
-    char *shm, *s2, *tmp;
+    char *shm, *s1, *tmp;
 
     key = 5678;
     /// END OF VARS FOR SHARED MEMORY ///
 
 
+    /// RES VARS FOR SHARED MEMORY ///
+    int shmid2;
+    key_t key2;
+    char *shm2, *s2;
 
+    key2 = 1234;
+    /// RES ŖEND OF VARS FOR SHARED MEMORY ///
 
 
 
@@ -157,6 +164,22 @@ int main()
         perror("shmat");
         exit(1);
     }
+    /// END OF SHARED MEMORY 1 ///
+
+     /// (2) SHARED MEMORY PREP ///
+    if ((shmid2 = shmget(key2, 27, IPC_CREAT | 0666)) < 0)
+    {
+        perror("shmget");
+        exit(1);
+    }
+
+    if ((shm2 = shmat(shmid2, NULL, 0)) == (char *) -1)
+    {
+        perror("shmat");
+        exit(1);
+    }
+
+    ///(2)  END OF SHARED MEMORY PREP ///
 
 
 
@@ -166,18 +189,21 @@ int main()
 
         if (strcmp(shm,tmp) == 0)
         {
+            printf("Got %s \n",shm);
+            printf("RES %s \n",shm2);
+
             //  printf("same");
             sleep(1);
         }
         else
         {
-            printf("Got %s \n",shm);
-            /// END SHARED MEMORY PREP ///
+
 
             /// GET A SENSOR OBJECT OUT OF A STRING ///
             struct Sensor *mySensor = createSensor(shm);
             printf("%s | %s : %s",mySensor->label,mySensor->ip,mySensor->port);
             tmp = shm;
+
 
 
             /// SOCKET PREP///
@@ -193,6 +219,8 @@ int main()
                 exit(1);
             }
             /// SOCKET PREP ///
+
+
 
 
             /// SEND SOCKET

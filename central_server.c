@@ -156,6 +156,16 @@ int main()
     /// END OF VARS FOR SHARED MEMORY ///
 
 
+    /// RES VARS FOR SHARED MEMORY ///
+    int shmid2;
+    key_t key2;
+    char *shm2, *s2;
+
+    key2 = 1234;
+    /// RES ŖEND OF VARS FOR SHARED MEMORY ///
+
+
+
 
     /// SOCKET PREP ///
     if ((sock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
@@ -172,7 +182,6 @@ int main()
 
 
     /// SHARED MEMORY PREP ///
-
     /*
      * Create the segment.
      */
@@ -199,6 +208,24 @@ int main()
     /// END OF SHARED MEMORY PREP ///
 
 
+    /// (2) SHARED MEMORY PREP ///
+    if ((shmid2 = shmget(key2, 27, IPC_CREAT | 0666)) < 0)
+    {
+        perror("shmget");
+        exit(1);
+    }
+
+    if ((shm2 = shmat(shmid2, NULL, 0)) == (char *) -1)
+    {
+        perror("shmat");
+        exit(1);
+    }
+
+   // s2 = shm2;
+
+    ///(2)  END OF SHARED MEMORY PREP ///
+
+
 
 
 
@@ -213,30 +240,34 @@ int main()
         {
             printf("error");
             diep("recvfrom()");
-        }else {
+        }
+        else
+        {
 
             /// add port to data ///
-          //  char tmpPort[5];
-            //sprintf(tmpPort, "%d", ntohs(si_other.sin_port));
-            //strcat(buf, "#");
-            //strcat(buf, tmpPort);
+            if(isdigit(buf[0]))
+            {
+                strcpy( s2, buf);
+                printf("RES %s \n",s2);
 
-            strcpy( s, buf);
+            }else{
+                strcpy( s, buf);
+                printf("FINAL %s \n",s);
+            }
 
             sleep(1);
-
-
-
             //scanf( "%s" , sen );
             if (sendto(sock, "1", BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
             {
                 diep("sendto()");
-            }else {
-            printf("msg sent \n");
+            }
+            else
+            {
+                printf("msg sent \n");
             }
 
 
-            printf("FINAL %s \n",buf);
+
             /// End add port to data ///
         }
 
