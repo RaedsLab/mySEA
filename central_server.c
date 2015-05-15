@@ -221,7 +221,7 @@ int main()
         exit(1);
     }
 
-   // s2 = shm2;
+    s2 = shm2;
 
     ///(2)  END OF SHARED MEMORY PREP ///
 
@@ -248,11 +248,12 @@ int main()
             if(isdigit(buf[0]))
             {
                 strcpy( s2, buf);
-                printf("RES %s \n",s2);
+                            printf("RES %s \n",s2);
+
 
             }else{
                 strcpy( s, buf);
-                printf("FINAL %s \n",s);
+            printf("FINAL %s \n",s);
             }
 
             sleep(1);
