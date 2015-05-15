@@ -17,8 +17,11 @@
 #define BUFLEN 512
 #define INTERFACE "wlan0"
 #define PORT 9930
-#define SRV_IP "192.168.1.4" // UPDATE VALUE FOR NEW SERVER IP
+#define SRV_IP "172.16.169.67" // UPDATE VALUE FOR NEW SERVER IP
 #define CAP_NAME "Temperature Sensor";
+
+
+#define PORT2 1337
 /// END OF DEFS ///
 
 
@@ -91,6 +94,7 @@ struct Sensor *createSensor()
 char * getInitialMessage(struct Sensor *s)
 {
     char* msg;
+    char port[20];
     msg = malloc(512);
     strcpy(msg, s->label);
     strcat(msg, "#");
@@ -101,6 +105,10 @@ char * getInitialMessage(struct Sensor *s)
     strcat(msg, s->actions[2]);
     strcat(msg, "#");
     strcat(msg, s->ip);
+    strcat(msg, "#");
+    snprintf (port, sizeof(port), "%d",PORT2);
+    strcat(msg,port); /// CAST TO STRING @TODO
+
     return msg;
 }
 /// END STRUCT ///
@@ -110,9 +118,17 @@ char * getInitialMessage(struct Sensor *s)
 
 int main(void)
 {
+    /// SOCKET ONE
     struct sockaddr_in si_other;
     int s, i, slen=sizeof(si_other);
     char buf[BUFLEN];
+
+    /// SOCKET 2
+    struct sockaddr_in si_me, si_other2;
+    int sock2, i2, slen2=sizeof(si_other2);
+    char buf2[BUFLEN];
+    char tmpBUF[BUFLEN];
+    ////
 
     //TEST IF First RUN
     int firstRun = 1;
@@ -127,6 +143,7 @@ int main(void)
 
     msg = getInitialMessage(mySensor);
 
+    /////
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
         diep("socket");
 
@@ -138,19 +155,79 @@ int main(void)
         fprintf(stderr, "inet_aton() failed\n");
         exit(1);
     }
+    ////
+    /// SOCKET PREP ///
+    if ((sock2=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
+        diep("socket 2");
 
-    if(firstRun!=0)
+    memset((char *) &si_me, 0, sizeof(si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(PORT2);
+    si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    if (bind(sock2,(struct sockaddr *) &si_me, sizeof(si_me))==-1)
+        diep("bind");
+    /// END SOCKET PREP ///
+
+
+
+    while(1)
     {
-        printf("FIRST RUN \n");
-        printf("%s", mySensor->label);
-        firstRun =0;
-        //SEND INITIAL DISVOVERY MESSAGE
-        if (sendto(s, msg, BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+        if(firstRun!=0)
         {
-            diep("sendto()");
+            printf("FIRST RUN \n");
+            printf("%s", mySensor->label);
+            firstRun =0;
+            //SEND INITIAL DISVOVERY MESSAGE
+            if (sendto(s, msg, BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+            {
+                diep("sendto()");
+            }
+
+        }
+        else
+        {
+            /// GET ACTIVATED ///
+            sleep(1);
+            int k;
+            for(k=0; k<100000 ; k++) {}
+
+
+            if (recvfrom(s, buf2, BUFLEN, 0,(struct sockaddr *) &si_other, &slen)==-1)
+            {
+                printf("error");
+                diep("recvfrom()");
+            }
+
+            strcpy(tmpBUF,buf2);
+
+            if(tmpBUF[0]=='1')
+            {
+                printf("\nTEMPS : %d \n",getTemp());
+
+                char temperature[5];
+                snprintf (temperature, sizeof(temperature), "%d",getTemp());
+
+                if (sendto(s, temperature, BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+                {
+                    diep("sendto()");
+                }
+
+            }
+
+
+
+
+            printf("\nGOT SOCK2 : %s \n",buf2);
+
+
+
+            /// END GET ACTIVATED ////
+
+
         }
     }
-
     close(s);
+    close(sock2);
     return 0;
 }

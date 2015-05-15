@@ -125,7 +125,8 @@ struct Sensor *createSensor(char * msg)
         mySensor->actions[0] = *(tokens +1);
         mySensor->actions[1] = *(tokens +2);
         mySensor->actions[2] = *(tokens +3);
-
+        mySensor->ip = *(tokens +4);
+        mySensor->port = *(tokens +5);
         free(tokens);
     }
 
@@ -143,6 +144,7 @@ int main()
     struct sockaddr_in si_me, si_other;
     int sock, i, slen=sizeof(si_other);
     char buf[BUFLEN];
+    char sen[20];
     /// END VARS FOR SOCKET ///
 
     /// VARS FOR SHARED MEMORY ///
@@ -152,6 +154,7 @@ int main()
 
     key = 5678;
     /// END OF VARS FOR SHARED MEMORY ///
+
 
 
     /// SOCKET PREP ///
@@ -197,9 +200,14 @@ int main()
 
 
 
+
+
     /// MAIN LOOP ///
     while(1)
     {
+        listen(sock,5);
+
+
         /// RECIVE A MESSAGE FROM SENSORS ///
         if (recvfrom(sock, buf, BUFLEN, 0,(struct sockaddr *) &si_other, &slen)==-1)
         {
@@ -208,18 +216,34 @@ int main()
         }else {
 
             /// add port to data ///
-            char tmpPort[5];
-            sprintf(tmpPort, "%d", ntohs(si_other.sin_port));
-            strcat(buf, "#");
-            strcat(buf, tmpPort);
-            s = buf;
+          //  char tmpPort[5];
+            //sprintf(tmpPort, "%d", ntohs(si_other.sin_port));
+            //strcat(buf, "#");
+            //strcat(buf, tmpPort);
+
+            strcpy( s, buf);
+
+            sleep(1);
+
+
+
+            //scanf( "%s" , sen );
+            if (sendto(sock, "1", BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+            {
+                diep("sendto()");
+            }else {
+            printf("msg sent \n");
+            }
+
+
             printf("FINAL %s \n",buf);
             /// End add port to data ///
-
-
-
-
         }
+
+
+
+
+
 
     }
 
