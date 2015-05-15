@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <netinet/in.h>
 #include <net/if.h>
+#include <sys/time.h>
 
 
 /// DEFS ///
@@ -39,6 +40,16 @@ int getTemp()
     return r;
 }
 
+char * getTime()
+{
+    char tt[20];
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    snprintf (tt, sizeof(tt), "%ld",tv.tv_sec);
+
+    return tt;
+}
 
 int setTemp(int t)
 {
@@ -107,7 +118,7 @@ char * getInitialMessage(struct Sensor *s)
     strcat(msg, s->ip);
     strcat(msg, "#");
     snprintf (port, sizeof(port), "%d",PORT2);
-    strcat(msg,port); /// CAST TO STRING @TODO
+    strcat(msg,port);
 
     return msg;
 }
@@ -136,7 +147,7 @@ int main(void)
     struct Sensor *mySensor = createSensor();
     mySensor->label = CAP_NAME;
     mySensor->actions[0] = "GetTemp";
-    mySensor->actions[1] = "SetTemp";
+    mySensor->actions[1] = "UnixTime";
 
     char* msg;
     msg = malloc(512);
@@ -214,6 +225,22 @@ int main(void)
                 }
 
             }
+
+            //////////
+            if(tmpBUF[0]=='2')
+            {
+                printf("\nTIME : %s \n",getTime());
+
+            /*    char temperature[5];
+                snprintf (temperature, sizeof(temperature), "%d",getTemp());
+*/
+                if (sendto(s, getTime(), BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+                {
+                    diep("sendto()");
+                }
+
+            }
+
 
 
 

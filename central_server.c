@@ -144,7 +144,7 @@ int main()
     struct sockaddr_in si_me, si_other;
     int sock, i, slen=sizeof(si_other);
     char buf[BUFLEN];
-    char sen[20];
+    char sen[512];
     /// END VARS FOR SOCKET ///
 
     /// VARS FOR SHARED MEMORY ///
@@ -248,17 +248,24 @@ int main()
             if(isdigit(buf[0]))
             {
                 strcpy( s2, buf);
-                            printf("RES %s \n",s2);
+                printf("RES %s \n",s2);
 
 
             }else{
                 strcpy( s, buf);
-            printf("FINAL %s \n",s);
+
+                struct Sensor *mySensorNow = createSensor(buf);
+                printf("[%s] %s : %s \n",mySensorNow->label,mySensorNow->ip,mySensorNow->port);
+                printf("\t1/ %s\n",mySensorNow->actions[0]);
+                printf("\t2/ %s\n",mySensorNow->actions[1]);
+                //printf("\t3/ %s\n",mySensorNow->actions[0]);
+
             }
 
             sleep(1);
-            //scanf( "%s" , sen );
-            if (sendto(sock, "1", BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
+            printf("Choose one method \n");
+            scanf( "%s" , sen );
+            if (sendto(sock, sen, BUFLEN, 0,(struct sockaddr *) &si_other, slen)==-1)
             {
                 diep("sendto()");
             }
